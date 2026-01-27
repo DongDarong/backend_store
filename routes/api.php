@@ -13,6 +13,23 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::middleware('auth:sanctum')->put('/profile', function (Request $request) {
+    $user = $request->user();
+
+    $data = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email'
+    ]);
+
+    $user->update($data);
+
+    return response()->json([
+        'success' => true,
+        'data' => $user
+    ]);
+});
+
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     // protect admin APIs if needed
