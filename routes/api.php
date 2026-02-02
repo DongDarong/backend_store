@@ -22,7 +22,7 @@ Route::post('/login', [AuthController::class, 'login']);
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logout']);
