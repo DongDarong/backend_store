@@ -24,7 +24,8 @@ class UserController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6'
+            'password' => 'required|min:6',
+            'role' => 'required|in:user,admin',
         ]);
 
         $data['password'] = Hash::make($data['password']);
@@ -39,21 +40,31 @@ class UserController extends Controller
 
     // PUT /api/users/{id}
     public function update(Request $request, $id)
-    {
-        $user = User::findOrFail($id);
+{
+    $user = User::findOrFail($id);
 
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id
-        ]);
+    $data = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,' . $id,
+        'role' => 'required|in:user,admin',
+        'password' => 'nullable|min:6'
+    ]);
 
-        $user->update($data);
-
-        return response()->json([
-            'success' => true,
-            'data' => $user
-        ]);
+    // If password provided → hash it
+    if (!empty($data['password'])) {
+        $data['password'] = Hash::make($data['password']);
+    } else {
+        unset($data['password']); // don't overwrite existing password
     }
+
+    $user->update($data);
+
+    return response()->json([
+        'success' => true,
+        'data' => $user
+    ]);
+}
+
 
     // DELETE /api/users/{id}
     public function destroy($id)

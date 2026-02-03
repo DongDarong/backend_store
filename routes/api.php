@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\OrderController;
 */
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('auth:sanctum')->apiResource('users', UserController::class);
 
 /*
 |--------------------------------------------------------------------------
@@ -38,27 +39,29 @@ Route::middleware('auth:sanctum')->group(function () {
         return response()->json($request->user());
     });
 
-    // ✅ Use POST instead of PUT for avatar upload
-    Route::post('/profile', function (Request $request) {
+    
+    Route::match(['put', 'post'], '/profile', function (Request $request) {
+    $user = $request->user();
 
-        $user = $request->user();
+    $data = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email',
+        'avatar' => 'nullable|image|max:2048'
+    ]);
 
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email',
-            'avatar' => 'nullable|image|max:2048'
-        ]);
+    if ($request->hasFile('avatar')) {
+        $path = $request->file('avatar')->store('avatars', 'public');
+        $data['avatar'] = $path;
+    }
 
-        // Avatar upload
-        if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $data['avatar'] = $path;
-        }
+    $user->update($data);
 
-        $user->update($data);
+    return response()->json([
+        'success' => true,
+        'data' => $user
+    ]);
+});
 
-        return response()->json($user);
-    });
 
     /*
     |--------------------------------------------------------------------------
